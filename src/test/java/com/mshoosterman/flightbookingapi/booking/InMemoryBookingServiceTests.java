@@ -38,6 +38,15 @@ class InMemoryBookingServiceTests {
     }
 
     @Test
+    void rejectsVeryLargeSeatCountAfterSeatsAreBooked() {
+        bookingService.createBooking(request("FL100", 1));
+
+        assertThatThrownBy(() -> bookingService.createBooking(request("FL100", Integer.MAX_VALUE)))
+                .isInstanceOf(InMemoryBookingService.FlightFullException.class)
+                .hasMessage("Not enough seats available");
+    }
+
+    @Test
     void rejectsUnknownFlightNumber() {
         assertThatThrownBy(() -> bookingService.createBooking(request("UNKNOWN", 1)))
                 .isInstanceOf(InMemoryBookingService.FlightNotFoundException.class)

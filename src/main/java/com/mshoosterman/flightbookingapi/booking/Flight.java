@@ -16,7 +16,7 @@ final class Flight {
     }
 
     boolean hasAvailableSeats(int seatCount) {
-        return bookedSeats + seatCount <= capacity;
+        return seatCount <= capacity - bookedSeats;
     }
 
     void reserveSeats(int seatCount) {

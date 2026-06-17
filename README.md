@@ -88,7 +88,7 @@ curl -i -X POST http://localhost:8080/api/bookings \
   }'
 ```
 
-Response:
+Response: `409 Conflict`
 
 ```json
 {
