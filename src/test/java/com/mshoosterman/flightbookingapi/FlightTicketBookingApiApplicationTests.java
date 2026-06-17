@@ -28,11 +28,46 @@ class FlightTicketBookingApiApplicationTests {
         mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"flightNumber":"FL100"}
+                                {
+                                  "flightNumber":"FL100",
+                                  "passengerName":"Alex Morgan",
+                                  "passengerEmail":"alex@example.com",
+                                  "seatCount":1
+                                }
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.bookingId", notNullValue()))
-                .andExpect(jsonPath("$.flightNumber").value("FL100"));
+                .andExpect(jsonPath("$.flightNumber").value("FL100"))
+                .andExpect(jsonPath("$.passengerName").value("Alex Morgan"))
+                .andExpect(jsonPath("$.passengerEmail").value("alex@example.com"))
+                .andExpect(jsonPath("$.seatCount").value(1));
+    }
+
+    @Test
+    void returnsBadRequestForInvalidRequestBody() throws Exception {
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "flightNumber":"",
+                                  "passengerName":"",
+                                  "passengerEmail":"not-an-email",
+                                  "seatCount":0
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid request body"));
+    }
+
+    @Test
+    void returnsBadRequestForMalformedJson() throws Exception {
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"flightNumber":"FL100"
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid request body"));
     }
 
     @Test
@@ -40,26 +75,31 @@ class FlightTicketBookingApiApplicationTests {
         mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"flightNumber":"UNKNOWN"}
+                                {
+                                  "flightNumber":"UNKNOWN",
+                                  "passengerName":"Alex Morgan",
+                                  "passengerEmail":"alex@example.com",
+                                  "seatCount":1
+                                }
                                 """))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Flight not found: UNKNOWN"));
     }
 
     @Test
-    void preventsOverbooking() throws Exception {
+    void returnsConflictWhenBookingWouldExceedAvailableSeats() throws Exception {
         mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"flightNumber":"FL300"}
+                                {
+                                  "flightNumber":"FL300",
+                                  "passengerName":"Alex Morgan",
+                                  "passengerEmail":"alex@example.com",
+                                  "seatCount":2
+                                }
                                 """))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(post("/api/bookings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"flightNumber":"FL300"}
-                                """))
-                .andExpect(status().isConflict());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Not enough seats available"));
     }
 
     @Test
@@ -67,7 +107,12 @@ class FlightTicketBookingApiApplicationTests {
         MvcResult createResult = mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"flightNumber":"FL200"}
+                                {
+                                  "flightNumber":"FL200",
+                                  "passengerName":"Alex Morgan",
+                                  "passengerEmail":"alex@example.com",
+                                  "seatCount":2
+                                }
                                 """))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -80,8 +125,11 @@ class FlightTicketBookingApiApplicationTests {
 
     @Test
     void returnsNotFoundWhenCancelingUnknownBooking() throws Exception {
-        mockMvc.perform(delete("/api/bookings/{bookingId}", UUID.randomUUID()))
-                .andExpect(status().isNotFound());
+        UUID bookingId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/bookings/{bookingId}", bookingId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Booking not found: " + bookingId));
     }
 
 }

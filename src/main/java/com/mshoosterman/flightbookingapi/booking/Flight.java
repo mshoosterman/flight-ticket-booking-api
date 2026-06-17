@@ -15,15 +15,15 @@ final class Flight {
         return flightNumber;
     }
 
-    boolean hasAvailableSeat() {
-        return bookedSeats < capacity;
+    boolean hasAvailableSeats(int seatCount) {
+        return bookedSeats + seatCount <= capacity;
     }
 
-    void reserveSeat() {
-        bookedSeats++;
+    void reserveSeats(int seatCount) {
+        bookedSeats += seatCount;
     }
 
-    void releaseSeat() {
-        bookedSeats--;
+    void releaseSeats(int seatCount) {
+        bookedSeats -= seatCount;
     }
 }

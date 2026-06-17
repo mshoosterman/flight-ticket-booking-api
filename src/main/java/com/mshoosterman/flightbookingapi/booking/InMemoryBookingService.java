@@ -17,17 +17,24 @@ class InMemoryBookingService {
         seedFlight("FL300", 1);
     }
 
-    synchronized Booking createBooking(String flightNumber) {
+    synchronized Booking createBooking(CreateBookingRequest request) {
+        String flightNumber = request.flightNumber();
         Flight flight = flights.get(flightNumber);
         if (flight == null) {
-            throw new FlightNotFoundException();
+            throw new FlightNotFoundException(flightNumber);
         }
-        if (!flight.hasAvailableSeat()) {
+        if (!flight.hasAvailableSeats(request.seatCount())) {
             throw new FlightFullException();
         }
 
-        flight.reserveSeat();
-        Booking booking = new Booking(UUID.randomUUID(), flight.flightNumber());
+        flight.reserveSeats(request.seatCount());
+        Booking booking = new Booking(
+                UUID.randomUUID(),
+                flight.flightNumber(),
+                request.passengerName(),
+                request.passengerEmail(),
+                request.seatCount()
+        );
         bookings.put(booking.id(), booking);
         return booking;
     }
@@ -35,10 +42,10 @@ class InMemoryBookingService {
     synchronized void cancelBooking(UUID bookingId) {
         Booking booking = bookings.remove(bookingId);
         if (booking == null) {
-            throw new BookingNotFoundException();
+            throw new BookingNotFoundException(bookingId);
         }
 
-        flights.get(booking.flightNumber()).releaseSeat();
+        flights.get(booking.flightNumber()).releaseSeats(booking.seatCount());
     }
 
     private void seedFlight(String flightNumber, int capacity) {
@@ -46,11 +53,23 @@ class InMemoryBookingService {
     }
 
     static class FlightNotFoundException extends RuntimeException {
+
+        FlightNotFoundException(String flightNumber) {
+            super("Flight not found: " + flightNumber);
+        }
     }
 
     static class FlightFullException extends RuntimeException {
+
+        FlightFullException() {
+            super("Not enough seats available");
+        }
     }
 
     static class BookingNotFoundException extends RuntimeException {
+
+        BookingNotFoundException(UUID bookingId) {
+            super("Booking not found: " + bookingId);
+        }
     }
 }
