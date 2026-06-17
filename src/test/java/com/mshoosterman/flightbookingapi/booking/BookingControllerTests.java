@@ -51,7 +51,7 @@ class BookingControllerTests {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value(
-                        "Invalid request body: flightNumber is required; passengerEmail must be valid; "
+                        "Invalid request body: flightNumber is required; passengerEmail must be a valid email address; "
                                 + "passengerName is required; seatCount must be at least 1"
                 ));
     }

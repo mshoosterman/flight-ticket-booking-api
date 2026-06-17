@@ -20,10 +20,24 @@ final class Flight {
     }
 
     void reserveSeats(int seatCount) {
+        if (seatCount < 1) {
+            throw new IllegalArgumentException("seatCount must be at least 1");
+        }
+        if (!hasAvailableSeats(seatCount)) {
+            throw new IllegalStateException("Cannot reserve more seats than available");
+        }
+
         bookedSeats += seatCount;
     }
 
     void releaseSeats(int seatCount) {
+        if (seatCount < 1) {
+            throw new IllegalArgumentException("seatCount must be at least 1");
+        }
+        if (seatCount > bookedSeats) {
+            throw new IllegalStateException("Cannot release more seats than booked");
+        }
+
         bookedSeats -= seatCount;
     }
 }
