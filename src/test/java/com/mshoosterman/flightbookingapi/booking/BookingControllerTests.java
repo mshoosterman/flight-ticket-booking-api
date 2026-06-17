@@ -50,7 +50,35 @@ class BookingControllerTests {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid request body"));
+                .andExpect(jsonPath("$.error").value(
+                        "Invalid request body: flightNumber is required; passengerEmail must be valid; "
+                                + "passengerName is required; seatCount must be at least 1"
+                ));
+    }
+
+    @Test
+    void postBookingsReturnsBadRequestForMissingRequestData() throws Exception {
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(
+                        "Invalid request body: flightNumber is required; passengerEmail is required; "
+                                + "passengerName is required; seatCount is required"
+                ));
+    }
+
+    @Test
+    void postBookingsReturnsBadRequestWhenSeatCountExceedsRequestLimit() throws Exception {
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validBookingJson("FL100", 1001)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(
+                        "Invalid request body: seatCount must be at most 1000"
+                ));
     }
 
     @Test

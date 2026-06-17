@@ -44,6 +44,13 @@ The service runs on `http://localhost:8080` by default.
 
 ## Create a Booking
 
+Required fields:
+
+- `flightNumber`
+- `passengerName`
+- `passengerEmail` as a valid email address
+- `seatCount` from `1` to `1000`
+
 ```bash
 curl -i -X POST http://localhost:8080/api/bookings \
   -H 'Content-Type: application/json' \
@@ -97,7 +104,15 @@ Response: `409 Conflict`
 ```
 
 ## What I Would Improve With More Time
+#### If this project had a greater scope, or was expected to take more time to complete these are the biggest changes I would make:
 
-- [ ] Add item here.
-- [ ] Add item here.
-- [ ] Add item here.
+- [ ] Use a SQL database for persistent storage for flights and bookings so data survives application restarts.
+- [ ] Add Swagger/OpenAPI support.
+- [ ] Add booking retrieval endpoints, such as looking up a booking by ID.
+- [ ] Add flight management or flight search.
+- [ ] Add mapping logic to book shortest or cheepest series of flights between destinations.
+- [ ] Add authentication.
+- [ ] Add stronger concurrency testing around simultaneous booking attempts.
+- [ ] Add observability basics, such as request logging, metrics, and health checks.
+
+#### Another consideration for this project was to potentially use graphQL rather than REST API, althought this was decided against since REST API was specifically requested.

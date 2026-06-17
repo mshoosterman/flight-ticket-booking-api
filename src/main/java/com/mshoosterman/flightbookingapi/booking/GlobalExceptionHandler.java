@@ -1,8 +1,11 @@
 package com.mshoosterman.flightbookingapi.booking;
 
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,11 +15,23 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 class GlobalExceptionHandler {
 
     @ExceptionHandler({
-            MethodArgumentNotValidException.class,
             HttpMessageNotReadableException.class
     })
     ResponseEntity<ErrorResponse> handleBadRequest() {
         return error(HttpStatus.BAD_REQUEST, "Invalid request body");
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ResponseEntity<ErrorResponse> handleValidationError(MethodArgumentNotValidException exception) {
+        String validationErrors = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .sorted(Comparator.comparing(FieldError::getField))
+                .map(FieldError::getDefaultMessage)
+                .distinct()
+                .collect(Collectors.joining("; "));
+
+        return error(HttpStatus.BAD_REQUEST, "Invalid request body: " + validationErrors);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
